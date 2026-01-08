@@ -1,0 +1,18 @@
+Visa	4242424242424242	3 cifre qualsiasi	Qualsiasi data futura
+Visa (carta di debito)	4000056655665556	3 cifre qualsiasi	Qualsiasi data futura
+Mastercard	5555555555554444	3 cifre qualsiasi	Qualsiasi data futura
+Mastercard (serie 2)	2223003122003222	3 cifre qualsiasi	Qualsiasi data futura
+Mastercard (carta di debito)	5200828282828210	3 cifre qualsiasi	Qualsiasi data futura
+Mastercard (carta prepagata)	5105105105105100	3 cifre qualsiasi	Qualsiasi data futura
+American Express	378282246310005	4 cifre qualsiasi	Qualsiasi data futura
+American Express	371449635398431	4 cifre qualsiasi	Qualsiasi data futura
+Discover	6011111111111117	3 cifre qualsiasi	Qualsiasi data futura
+Discover	6011000990139424	3 cifre qualsiasi	Qualsiasi data futura
+Discover (carta di debito)	6011981111111113	3 cifre qualsiasi	Qualsiasi data futura
+Diners Club	3056930009020004	3 cifre qualsiasi	Qualsiasi data futura
+Diners Club (carta con 14 cifre)	36227206271667	3 cifre qualsiasi	Qualsiasi data futura
+BCcard e DinaCard	6555900000604105	3 cifre qualsiasi	Qualsiasi data futura
+JCB	3566002020360505	3 cifre qualsiasi	Qualsiasi data futura
+UnionPay	6200000000000005	3 cifre qualsiasi	Qualsiasi data futura
+UnionPay (carta di debito)	6200000000000047	3 cifre qualsiasi	Qualsiasi data futura
+UnionPay (carta con 19 cifre)	6205500000000000004	3 cifre qualsiasi	Qualsiasi data futura
