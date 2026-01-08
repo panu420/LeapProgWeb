@@ -45,3 +45,8 @@ OPENROUTER_API_KEY
 STRIPE_SECRET_KEY
 
 JWT_SECRET
+
+E' possibile reperire le variabili d'ambiente dai seguenti siti web:
+https://openrouter.ai/
+https://stripe.com/
+https://www.jwt.io/
