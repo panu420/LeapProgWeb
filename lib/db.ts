@@ -245,6 +245,35 @@ function initializeDatabase(database: Database.Database): void {
   // Aggiungi foreign key per classeId in appunto se non esiste
   // SQLite non supporta ALTER TABLE ADD FOREIGN KEY, quindi la gestiamo a livello applicativo
 
+  // Tabella ACQUISTO (per tracciare tutti gli acquisti/pagamenti)
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS acquisto (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      studenteId INTEGER NOT NULL,
+      tipoProdotto VARCHAR(50) NOT NULL,
+      nomeProdotto VARCHAR(255) NOT NULL,
+      importo INTEGER NOT NULL,
+      importoEuro REAL NOT NULL,
+      stripeSessionId VARCHAR(255) NOT NULL,
+      coinsAggiunti INTEGER NULL,
+      mesiAbbonamento INTEGER NULL,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (studenteId) REFERENCES studente(id) ON DELETE RESTRICT
+    );
+  `);
+
+  database.exec(`
+    CREATE INDEX IF NOT EXISTS idx_acquisto_studenteId ON acquisto(studenteId);
+  `);
+
+  database.exec(`
+    CREATE INDEX IF NOT EXISTS idx_acquisto_createdAt ON acquisto(createdAt);
+  `);
+
+  database.exec(`
+    CREATE INDEX IF NOT EXISTS idx_acquisto_stripeSessionId ON acquisto(stripeSessionId);
+  `);
+
   // commentato tanto é stato giá testato
   //console.log('✅ Database inizializzato correttamente');
 }

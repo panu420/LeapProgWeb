@@ -57,18 +57,31 @@ export async function GET(request: NextRequest) {
 
     console.log('✅ Utente trovato:', studenteId);
 
+    // Recupera il prodotto per salvare i dettagli dell'acquisto
+    const product = PRODUCT_PRICES[productType as keyof typeof PRODUCT_PRICES];
+    if (!product) {
+      console.error('❌ Prodotto non trovato:', productType);
+      return NextResponse.json(
+        { error: 'Prodotto non trovato' },
+        { status: 400 }
+      );
+    }
+
     // Applica il prodotto acquistato
+    let coinsAggiunti: number | null = null;
+    let mesiAbbonamento: number | null = null;
+
     if (productType.startsWith('COINS_')) {
-      const product = PRODUCT_PRICES[productType as keyof typeof PRODUCT_PRICES];
-      if (product && 'coins' in product) {
+      if ('coins' in product) {
+        coinsAggiunti = product.coins;
         console.log(`💰 Aggiungo ${product.coins} coin all'utente ${studenteId}`);
         addCoins(studenteId, product.coins);
       } else {
         console.error('❌ Prodotto coin non trovato:', productType);
       }
     } else if (productType.startsWith('SUBSCRIPTION_')) {
-      const product = PRODUCT_PRICES[productType as keyof typeof PRODUCT_PRICES];
-      if (product && 'months' in product) {
+      if ('months' in product) {
+        mesiAbbonamento = product.months;
         console.log(`⭐ Attivo abbonamento di ${product.months} mesi per utente ${studenteId}`);
         activateSubscription(studenteId, product.months);
       } else {
@@ -80,6 +93,35 @@ export async function GET(request: NextRequest) {
         { error: 'Tipo prodotto non riconosciuto' },
         { status: 400 }
       );
+    }
+
+    // Salva l'acquisto nel database
+    try {
+      db.prepare(`
+        INSERT INTO acquisto (
+          studenteId, 
+          tipoProdotto, 
+          nomeProdotto, 
+          importo, 
+          importoEuro, 
+          stripeSessionId, 
+          coinsAggiunti, 
+          mesiAbbonamento
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        studenteId,
+        productType,
+        product.name,
+        product.amount,
+        product.amount / 100, // Converti centesimi in euro
+        sessionId,
+        coinsAggiunti,
+        mesiAbbonamento
+      );
+      console.log('✅ Acquisto salvato nel database');
+    } catch (error: any) {
+      console.error('❌ Errore nel salvataggio acquisto:', error);
+      // Non blocchiamo il flusso se il salvataggio fallisce, l'utente ha già ricevuto il prodotto
     }
 
     console.log('✅ Pagamento elaborato con successo');

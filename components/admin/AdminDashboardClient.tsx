@@ -445,6 +445,9 @@ export default function AdminDashboardClient() {
         </div>
       </div>
 
+      {/* Sezione Acquisti */}
+      <PurchasesSection />
+
       {/* Sezione Gestione Utenti */}
       <UserManagementSection />
     </div>
@@ -909,6 +912,198 @@ function UserManagementSection() {
           ) : null}
         </div>
       )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Sezione per visualizzare tutti gli acquisti effettuati
+ */
+function PurchasesSection() {
+  const [acquisti, setAcquisti] = useState<Array<{
+    id: number;
+    studenteId: number;
+    nomeUtente: string;
+    emailUtente: string;
+    tipoProdotto: string;
+    nomeProdotto: string;
+    importo: number;
+    importoEuro: number;
+    stripeSessionId: string;
+    coinsAggiunti: number | null;
+    mesiAbbonamento: number | null;
+    createdAt: string;
+  }>>([]);
+  const [statistiche, setStatistiche] = useState<{
+    totalAcquisti: number;
+    totaleRicavi: number;
+    totaleCoinVenduti: number;
+    totaleAbbonamenti: number;
+  } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchAcquisti() {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch('/api/admin/purchases');
+        if (!response.ok) {
+          throw new Error('Errore nel caricamento degli acquisti');
+        }
+        const data = await response.json();
+        setAcquisti(data.acquisti);
+        setStatistiche(data.statistiche);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Errore sconosciuto');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAcquisti();
+    // Aggiorna ogni 30 secondi
+    const interval = setInterval(fetchAcquisti, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="mb-8">
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">Acquisti</h2>
+
+      {/* Statistiche Acquisti */}
+      {statistiche && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <KPICard
+            title="Totale Acquisti"
+            value={statistiche.totalAcquisti}
+            subtitle="Acquisti effettuati"
+            icon="🛒"
+          />
+          <KPICard
+            title="Totale Ricavi"
+            value={`€${statistiche.totaleRicavi.toFixed(2)}`}
+            subtitle="Ricavi totali"
+            icon="💵"
+          />
+          <KPICard
+            title="Coin Venduti"
+            value={statistiche.totaleCoinVenduti.toLocaleString()}
+            subtitle="Coin venduti totali"
+            icon="🪙"
+          />
+          <KPICard
+            title="Abbonamenti Venduti"
+            value={statistiche.totaleAbbonamenti}
+            subtitle="Abbonamenti venduti"
+            icon="⭐"
+          />
+        </div>
+      )}
+
+      {/* Tabella Acquisti */}
+      <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          Elenco Acquisti ({acquisti.length})
+        </h3>
+
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Caricamento acquisti...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-8">
+            <p className="text-red-600">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Ricarica
+            </button>
+          </div>
+        ) : acquisti.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500">Nessun acquisto effettuato</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Data
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Utente
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Prodotto
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Importo
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Dettagli
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Stripe Session
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {acquisti.map((acquisto) => (
+                  <tr key={acquisto.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(acquisto.createdAt).toLocaleString('it-IT', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {acquisto.nomeUtente}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {acquisto.emailUtente}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {acquisto.nomeProdotto}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {acquisto.tipoProdotto}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">
+                      €{acquisto.importoEuro.toFixed(2)}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {acquisto.coinsAggiunti !== null && (
+                        <span className="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">
+                          +{acquisto.coinsAggiunti} coin
+                        </span>
+                      )}
+                      {acquisto.mesiAbbonamento !== null && (
+                        <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-1">
+                          {acquisto.mesiAbbonamento} {acquisto.mesiAbbonamento === 1 ? 'mese' : 'mesi'}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 font-mono">
+                      {acquisto.stripeSessionId.substring(0, 20)}...
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
