@@ -3,18 +3,49 @@
  * Esegui con: npx tsx scripts/seed-database.ts
  * 
  * Popola il database con ~100 utenti e dati distribuiti nel tempo
- * Data di riferimento: 12/01/2025
+ * Periodo di riferimento: 09/01/2026 - 13/01/2026
  */
 
 import { getDatabase } from '../lib/db';
 import bcrypt from 'bcryptjs';
 
+// Prezzi prodotti (in centesimi di euro) - duplicati qui per evitare dipendenza da Stripe nel seed
+const PRODUCT_PRICES = {
+  COINS_100: {
+    amount: 299, // 2.99€
+    coins: 100,
+    name: 'Pacchetto 100 Coin',
+  },
+  COINS_250: {
+    amount: 699, // 6.99€
+    coins: 250,
+    name: 'Pacchetto 250 Coin',
+  },
+  COINS_500: {
+    amount: 1299, // 12.99€
+    coins: 500,
+    name: 'Pacchetto 500 Coin',
+  },
+  SUBSCRIPTION_MONTHLY: {
+    amount: 800, // 8.00€
+    months: 1,
+    name: 'Abbonamento Mensile',
+  },
+  SUBSCRIPTION_YEARLY: {
+    amount: 7900, // 79.00€
+    months: 12,
+    name: 'Abbonamento Annuale',
+  },
+} as const;
+
 const db = getDatabase();
 
-// Data di riferimento (oggi)
-const TODAY = new Date('2025-01-12');
-const SIX_MONTHS_AGO = new Date('2024-07-12');
-const TWELVE_MONTHS_AGO = new Date('2024-01-12');
+// Date di riferimento per il periodo di seed
+const START_DATE = new Date('2026-01-09');
+const END_DATE = new Date('2026-01-13');
+const TODAY = END_DATE; // Data finale come riferimento
+const SIX_MONTHS_AGO = new Date('2025-07-13');
+const TWELVE_MONTHS_AGO = new Date('2025-01-13');
 
 /**
  * Genera una data casuale tra startDate e endDate
@@ -54,6 +85,18 @@ function generateEmail(nome: string, index: number): string {
 }
 
 /**
+ * Genera un session ID Stripe fittizio ma realistico
+ */
+function generateStripeSessionId(): string {
+  // Formato: cs_test_xxxxxxxxxxxxxxxxxxxxxx
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const randomPart = Array.from({ length: 24 }, () => 
+    chars[Math.floor(Math.random() * chars.length)]
+  ).join('');
+  return `cs_test_${randomPart}`;
+}
+
+/**
  * Funzione principale per popolare il database
  */
 async function seedDatabase() {
@@ -88,7 +131,7 @@ async function seedDatabase() {
     isAdmin: 1,
     coins: 1000,
     isSubscribed: 1,
-    subscriptionExpiresAt: new Date('2026-01-12').toISOString(), // Abbonamento attivo fino al 2026
+    subscriptionExpiresAt: new Date('2026-01-13').toISOString(), // Abbonamento attivo fino al 2026
     createdAt: TWELVE_MONTHS_AGO.toISOString(),
   });
 
@@ -237,7 +280,7 @@ async function seedDatabase() {
 
   const classeIds: number[] = [];
   for (let i = 0; i < classiNomi.length; i++) {
-    const codice = `${classiNomi[i].substring(0, 4).toUpperCase()}${2024 + (i % 2)}`;
+    const codice = `${classiNomi[i].substring(0, 4).toUpperCase()}${2025 + (i % 2)}`;
     const createdAt = randomDate(TWELVE_MONTHS_AGO, SIX_MONTHS_AGO); // Classi create nei primi 6 mesi
 
     const existing = db
@@ -268,7 +311,7 @@ async function seedDatabase() {
 
     for (const studenteId of studentiInClasse) {
       const joinedAt = randomDate(
-        new Date('2024-07-12'), // Dopo la creazione delle classi
+        new Date('2025-07-13'), // Dopo la creazione delle classi
         TODAY
       );
       try {
@@ -320,11 +363,11 @@ async function seedDatabase() {
   const numShared = Math.floor(appuntoIds.length * 0.3); // 30% degli appunti condivisi
   const shuffledAppunti = [...appuntoIds].sort(() => Math.random() - 0.5);
   
-  for (let i = 0; i < numShared; i++) {
+    for (let i = 0; i < numShared; i++) {
     const appuntoId = shuffledAppunti[i];
     const classeId = classeIds[Math.floor(Math.random() * classeIds.length)];
     const sharedAt = randomDate(
-      new Date('2024-08-01'),
+      new Date('2025-08-13'),
       TODAY
     );
 
@@ -355,7 +398,7 @@ async function seedDatabase() {
     const lastScore = isCompleted ? Math.floor(Math.random() * 40) + 60 : null;
     const bestScore = isCompleted ? (lastScore! + Math.floor(Math.random() * 20)) : null;
     const lastCompletedAt = isCompleted 
-      ? randomDate(new Date('2024-08-01'), TODAY) 
+      ? randomDate(new Date('2025-08-13'), TODAY) 
       : null;
 
     const studentCreatedAt = userIdToCreatedAt.get(studenteId) || TWELVE_MONTHS_AGO.toISOString();
@@ -403,7 +446,7 @@ async function seedDatabase() {
     const lastScore = isCompleted ? Math.floor(Math.random() * 40) + 60 : null;
     const bestScore = isCompleted ? (lastScore! + Math.floor(Math.random() * 20)) : null;
     const lastCompletedAt = isCompleted 
-      ? randomDate(new Date('2024-08-01'), TODAY) 
+      ? randomDate(new Date('2025-08-13'), TODAY) 
       : null;
 
     const studentCreatedAt = userIdToCreatedAt.get(studenteId) || TWELVE_MONTHS_AGO.toISOString();
@@ -442,7 +485,7 @@ async function seedDatabase() {
     const missioneId = missioniTypes[Math.floor(Math.random() * missioniTypes.length)];
     
     // Distribuisci missioni negli ultimi 3 mesi
-    const missionDate = randomDate(new Date('2024-10-12'), TODAY);
+    const missionDate = randomDate(new Date('2025-10-13'), TODAY);
     const dateStr = missionDate.split('T')[0];
 
     try {
@@ -466,6 +509,71 @@ async function seedDatabase() {
   ).get() as { count: number };
   const subscribedTotal = db.prepare('SELECT COUNT(*) as count FROM studente WHERE isSubscribed = 1').get() as { count: number };
 
+  // 9. Crea acquisti (distribuiti tra 09/01/2026 e 13/01/2026)
+  console.log('\n🛒 Creazione acquisti...');
+  const productTypes = Object.keys(PRODUCT_PRICES) as Array<keyof typeof PRODUCT_PRICES>;
+  // ~30% degli utenti ha fatto almeno un acquisto
+  const utentiConAcquisti = userIds.slice(0, Math.floor(userIds.length * 0.3));
+  const numAcquisti = Math.floor(utentiConAcquisti.length * (1 + Math.random() * 1.5)); // 1-2.5 acquisti per utente
+
+  let acquistiCount = 0;
+  for (let i = 0; i < numAcquisti; i++) {
+    const studenteId = utentiConAcquisti[Math.floor(Math.random() * utentiConAcquisti.length)];
+    const productType = productTypes[Math.floor(Math.random() * productTypes.length)];
+    const product = PRODUCT_PRICES[productType];
+    
+    // Data acquisto distribuita tra START_DATE e END_DATE
+    const createdAt = randomDate(START_DATE, END_DATE);
+    
+    // Determina coinsAggiunti e mesiAbbonamento in base al tipo prodotto
+    let coinsAggiunti: number | null = null;
+    let mesiAbbonamento: number | null = null;
+    
+    if (productType.startsWith('COINS_')) {
+      coinsAggiunti = 'coins' in product ? product.coins : null;
+    } else if (productType.startsWith('SUBSCRIPTION_')) {
+      mesiAbbonamento = 'months' in product ? product.months : null;
+    }
+    
+    const stripeSessionId = generateStripeSessionId();
+    
+    try {
+      db.prepare(
+        `INSERT INTO acquisto (
+          studenteId, tipoProdotto, nomeProdotto, importo, importoEuro, 
+          stripeSessionId, coinsAggiunti, mesiAbbonamento, createdAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run(
+        studenteId,
+        productType,
+        product.name,
+        product.amount,
+        product.amount / 100, // Converti centesimi in euro
+        stripeSessionId,
+        coinsAggiunti,
+        mesiAbbonamento,
+        createdAt
+      );
+      acquistiCount++;
+    } catch (e) {
+      console.error(`Errore inserimento acquisto: ${e}`);
+    }
+  }
+  console.log(`  ✓ Creati ${acquistiCount} acquisti`);
+
+  // 10. Aggiorna dati utenti con date nel periodo 09-13 gennaio 2026
+  console.log('\n📅 Aggiornamento date utenti nel periodo 09-13 gennaio 2026...');
+  let updatedUsers = 0;
+  for (const userId of userIds) {
+    // Aggiorna createdAt per alcuni utenti nel periodo specificato
+    if (Math.random() < 0.4) { // 40% degli utenti con data nel periodo
+      const newCreatedAt = randomDate(START_DATE, END_DATE);
+      db.prepare('UPDATE studente SET createdAt = ? WHERE id = ?').run(newCreatedAt, userId);
+      updatedUsers++;
+    }
+  }
+  console.log(`  ✓ Aggiornate date per ${updatedUsers} utenti`);
+
   console.log('\n✅ Seeding completato con successo!');
   console.log('\n📊 Riepilogo:');
   console.log(`  - ${studenteIds.length} utenti creati`);
@@ -476,10 +584,17 @@ async function seedDatabase() {
   console.log(`  - ${quizIds.length} quiz creati`);
   console.log(`  - ${veroFalsoIds.length} esercizi Vero/Falso creati`);
   console.log(`  - ${missioniCount} missioni completate`);
+  console.log(`  - ${acquistiCount} acquisti creati`);
   console.log('\n💰 Monetizzazione:');
   console.log(`  - ${totalCoins.total || 0} coin totali nel sistema`);
   console.log(`  - ${subscribedActive.count} utenti con abbonamento attivo`);
   console.log(`  - ${subscribedTotal.count} utenti che hanno fatto abbonamento`);
+  
+  // Statistiche acquisti
+  const totalAcquisti = db.prepare('SELECT COUNT(*) as count FROM acquisto').get() as { count: number };
+  const totaleRicavi = db.prepare('SELECT SUM(importoEuro) as total FROM acquisto').get() as { total: number | null };
+  console.log(`  - ${totalAcquisti.count} acquisti totali registrati`);
+  console.log(`  - €${(totaleRicavi.total || 0).toFixed(2)} ricavi totali da acquisti`);
 }
 
 // Esegui lo script
