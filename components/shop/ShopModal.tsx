@@ -87,7 +87,7 @@ export function ShopModal({
             {isSubscribed && (
               <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg">
                 <p className="text-sm font-semibold">✓ Abbonato</p>
-                <p className="text-xs">Accesso illimitato all'AI</p>
+                <p className="text-xs">Accesso illimitato all&apos;AI</p>
               </div>
             )}
           </div>
@@ -165,7 +165,7 @@ export function ShopModal({
                 <p className="text-3xl font-bold text-blue-600 mb-2">€8,00</p>
                 <p className="text-sm text-gray-600 mb-4">al mese</p>
                 <ul className="text-left text-sm text-gray-600 mb-4 space-y-2">
-                  <li>✓ Accesso illimitato all'AI</li>
+                  <li>✓ Accesso illimitato all&apos;AI</li>
                   <li>✓ Generazione appunti gratuita</li>
                   <li>✓ Generazione quiz gratuita</li>
                   <li>✓ Generazione vero/falso gratuita</li>
@@ -194,12 +194,12 @@ export function ShopModal({
                   Abbonamento Annuale
                 </p>
                 <p className="text-3xl font-bold text-green-600 mb-2">€79,00</p>
-                <p className="text-sm text-gray-600 mb-1">all'anno</p>
+                <p className="text-sm text-gray-600 mb-1">all&apos;anno</p>
                 <p className="text-xs text-green-600 font-semibold mb-4">
                   Risparmia €17 rispetto al mensile!
                 </p>
                 <ul className="text-left text-sm text-gray-600 mb-4 space-y-2">
-                  <li>✓ Accesso illimitato all'AI</li>
+                  <li>✓ Accesso illimitato all&apos;AI</li>
                   <li>✓ Generazione appunti gratuita</li>
                   <li>✓ Generazione quiz gratuita</li>
                   <li>✓ Generazione vero/falso gratuita</li>

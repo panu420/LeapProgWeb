@@ -8,6 +8,21 @@ import { getAuthUser } from "@/lib/auth";
 import { getDatabase } from "@/lib/db";
 import { VeroFalsoRunner } from "@/components/vero-falso/VeroFalsoRunner";
 
+/**
+ * Interfaccia per i dati del vero/falso dal database
+ */
+interface VeroFalsoRow {
+  id: number;
+  studenteId: number;
+  titolo: string;
+  difficolta: string;
+  totalQuestions: number;
+  createdAt: string;
+  lastScore: number | null;
+  bestScore: number | null;
+  completedAttempts: number;
+}
+
 interface StatementDto {
   id: number;
   affermazione: string;
@@ -33,7 +48,7 @@ export default async function VeroFalsoDetailPage({
               lastScore, bestScore, completedAttempts
        FROM vero_falso WHERE id = ? AND studenteId = ?`
     )
-    .get(Number(id), user.id);
+    .get(Number(id), user.id) as VeroFalsoRow | undefined;
 
   if (!veroFalso) {
     redirect("/vero-falso");

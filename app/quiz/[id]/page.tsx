@@ -5,6 +5,21 @@ import { getDatabase } from '@/lib/db';
 import { QuizRunner } from '@/components/quiz/QuizRunner';
 
 /**
+ * Interfaccia per i dati del quiz dal database
+ */
+interface QuizRow {
+  id: number;
+  studenteId: number;
+  titolo: string;
+  difficolta: string;
+  totalQuestions: number;
+  createdAt: string;
+  lastScore: number | null;
+  bestScore: number | null;
+  completedAttempts: number;
+}
+
+/**
  * Interfaccia per le domande quiz dal database
  */
 interface QuestionDto {
@@ -50,7 +65,7 @@ export default async function QuizDetailPage({
               lastScore, bestScore, completedAttempts
        FROM quiz WHERE id = ? AND studenteId = ?`
     )
-    .get(Number(id), user.id);
+    .get(Number(id), user.id) as QuizRow | undefined;
 
   // Se il quiz non esiste o non appartiene all'utente, redirect alla lista quiz
   if (!quiz) {

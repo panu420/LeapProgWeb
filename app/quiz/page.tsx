@@ -3,6 +3,15 @@ import Link from 'next/link';
 import { getAuthUser } from '@/lib/auth';
 import { getDatabase } from '@/lib/db';
 import { QuizClient } from '@/components/quiz/QuizClient';
+import { QuizSummary } from '@/types/quiz';
+
+/**
+ * Interfaccia per i dati dell'appunto dal database (lista)
+ */
+interface AppuntoRow {
+  id: number;
+  titolo: string;
+}
 
 export default async function QuizPage() {
   const user = await getAuthUser();
@@ -17,11 +26,11 @@ export default async function QuizPage() {
               lastScore, bestScore, completedAttempts
        FROM quiz WHERE studenteId = ? ORDER BY createdAt DESC`
     )
-    .all(user.id);
+    .all(user.id) as QuizSummary[];
 
   const appunti = db
     .prepare('SELECT id, titolo FROM appunto WHERE studenteId = ? ORDER BY createdAt DESC LIMIT 50')
-    .all(user.id);
+    .all(user.id) as AppuntoRow[];
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">

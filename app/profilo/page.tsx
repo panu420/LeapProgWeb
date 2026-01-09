@@ -4,6 +4,18 @@ import { getAuthUser } from '@/lib/auth';
 import { getDatabase } from '@/lib/db';
 import { ProfileClient } from '@/components/profile/ProfileClient';
 
+/**
+ * Interfaccia per i dati del profilo dal database
+ * (ProfileClient richiede: nome, email, livello, punti, createdAt)
+ */
+interface ProfileRow {
+  nome: string;
+  email: string;
+  livello: number;
+  punti: number;
+  createdAt: string;
+}
+
 export default async function ProfiloPage() {
   const user = await getAuthUser();
   if (!user) {
@@ -15,7 +27,7 @@ export default async function ProfiloPage() {
     .prepare(
       'SELECT nome, email, livello, punti, coins, isSubscribed, subscriptionExpiresAt, createdAt FROM studente WHERE id = ?'
     )
-    .get(user.id);
+    .get(user.id) as ProfileRow | undefined;
 
   if (!profile) {
     redirect('/login');
